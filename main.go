@@ -15,6 +15,7 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	_ "tz/docs"
 )
@@ -32,9 +33,7 @@ func main() {
 	http.HandleFunc("/sumAllSub", handlers.Sum)
 	http.HandleFunc("/subscriptions/", handlers.SubscriptionsID)
 
-	http.HandleFunc("/swagger", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/swagger.json")
-	})
+	http.Handle("/swagger/", httpSwagger.WrapHandler)
 	log.Println("Server starting on port :8080")
 
 	err = http.ListenAndServe(":8080", nil)

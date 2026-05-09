@@ -1,11 +1,229 @@
 basePath: /
+definitions:
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.SumResponse:
+    properties:
+      sum:
+        type: integer
+    type: object
+  repository.CreateSubscriptionRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  repository.Subscription:
+    properties:
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: integer
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  repository.UpdateRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
   description: REST API сервис для управления подписками
   title: Subscription Service API
   version: "1.0"
-paths: {}
+paths:
+  /subscriptions:
+    get:
+      description: Возвращает список подписок пользователя
+      parameters:
+      - description: UUID пользователя
+        in: query
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/repository.Subscription'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Список подписок
+      tags:
+      - Subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Создает новую подписку
+      parameters:
+      - description: Данные подписки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/repository.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Создание подписки
+      tags:
+      - Subscriptions
+  /subscriptions/{id}:
+    delete:
+      description: Удаляет подписку
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Удаление подписки
+      tags:
+      - Subscriptions
+    get:
+      description: Возвращает подписку по ID
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.Subscription'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Получение подписки
+      tags:
+      - Subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Обновляет подписку
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/repository.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Обновление подписки
+      tags:
+      - Subscriptions
+  /sumAllSub:
+    get:
+      description: Подсчитывает сумму подписок за период
+      parameters:
+      - description: Дата начала (MM-YYYY)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: Дата окончания (MM-YYYY)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: UUID пользователя
+        in: query
+        name: user_id
+        type: string
+      - description: Название сервиса
+        in: query
+        name: service_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SumResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Сумма подписок
+      tags:
+      - Subscriptions
 schemes:
 - http
 swagger: "2.0"

@@ -1,4 +1,4 @@
-# Запустить проект
+# Запуск проекта
 
 ```bash
 docker compose up
@@ -8,21 +8,20 @@ docker compose up
 
 ## Swagger
 
-Swagger доступен по адресу:
+Swagger UI доступен по адресу:
 
 ```text
-http://localhost:8080/swagger
+http://localhost:8080/swagger/index.html
 ```
 
 ---
 
 ## Миграции
 
-SQL миграции находятся в папке migrations
+SQL migrations находятся в папке migrations
 
 ---
 
 ## Переменные окружения
 
-Примеры представлены в .env.example
-
+Пример переменных окружения находится в файле .env.example

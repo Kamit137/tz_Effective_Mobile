@@ -11,17 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
-// @Summary      Создание подписки или получение списка
-// @Description  POST - создание новой подписки, GET - список всех подписок
-// @Tags         Subscriptions
-// @Accept       json
-// @Produce      json
-// @Success      200 {array} repository.Subscription
-// @Success      201 {object} map[string]string
-// @Failure      400 {object} map[string]string
-// @Failure      405 {object} map[string]string
-// @Router       /subscriptions [post]
-// @Router       /subscriptions [get]
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type MessageResponse struct {
+	Message string `json:"message"`
+}
+
+type SumResponse struct {
+	Sum int `json:"sum"`
+}
+
 func Subscriptions(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -34,21 +35,6 @@ func Subscriptions(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @Summary      Работа с конкретной подпиской
-// @Description  GET - получение, PUT - обновление, DELETE - удаление
-// @Tags         Subscriptions
-// @Accept       json
-// @Produce      json
-// @Param        id   path      int  true  "ID подписки"
-// @Success      200  {object}  repository.Subscription
-// @Success      200  {object}  map[string]string
-// @Success      204  {object}  nil
-// @Failure      400  {object}  map[string]string
-// @Failure      404  {object}  map[string]string
-// @Failure      405  {object}  map[string]string
-// @Router       /subscriptions/{id} [get]
-// @Router       /subscriptions/{id} [put]
-// @Router       /subscriptions/{id} [delete]
 func SubscriptionsID(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	if len(parts) < 1 {
@@ -90,8 +76,8 @@ func SubscriptionsID(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        request body repository.CreateSubscriptionRequest true "Данные подписки"
-// @Success      201 {object} map[string]string
-// @Failure      400 {object} map[string]string
+// @Success      201 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
 // @Router       /subscriptions [post]
 func CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	var req repository.CreateSubscriptionRequest
@@ -128,8 +114,7 @@ func CreateSubscription(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id path int true "ID подписки"
 // @Success      200 {object} repository.Subscription
-// @Failure      400 {object} map[string]string
-// @Failure      404 {object} map[string]string
+// @Failure      404 {object} ErrorResponse
 // @Router       /subscriptions/{id} [get]
 func GetSubscription(w http.ResponseWriter, r *http.Request, subID int) {
 	sub, err := repository.GetSub(subID)
@@ -147,15 +132,14 @@ func GetSubscription(w http.ResponseWriter, r *http.Request, subID int) {
 }
 
 // @Summary      Обновление подписки
-// @Description  Обновляет существующую подписку
+// @Description  Обновляет подписку
 // @Tags         Subscriptions
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "ID подписки"
-// @Param        request body repository.UpdateRequest true "Данные для обновления"
-// @Success      200 {object} map[string]string
-// @Failure      400 {object} map[string]string
-// @Failure      404 {object} map[string]string
+// @Param        request body repository.UpdateRequest true "Данные обновления"
+// @Success      200 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
 // @Router       /subscriptions/{id} [put]
 func UpdateSubscription(w http.ResponseWriter, r *http.Request, subID int) {
 	var req repository.UpdateRequest
@@ -182,12 +166,11 @@ func UpdateSubscription(w http.ResponseWriter, r *http.Request, subID int) {
 }
 
 // @Summary      Удаление подписки
-// @Description  Удаляет подписку по ID
+// @Description  Удаляет подписку
 // @Tags         Subscriptions
 // @Param        id path int true "ID подписки"
 // @Success      204
-// @Failure      400 {object} map[string]string
-// @Failure      404 {object} map[string]string
+// @Failure      400 {object} ErrorResponse
 // @Router       /subscriptions/{id} [delete]
 func DeleteSubscription(w http.ResponseWriter, r *http.Request, subID int) {
 	err := repository.DeleteSubscription(subID)
@@ -203,15 +186,13 @@ func DeleteSubscription(w http.ResponseWriter, r *http.Request, subID int) {
 }
 
 // @Summary      Список подписок
-// @Description  Возвращает список всех подписок с пагинацией
+// @Description  Возвращает список подписок пользователя
 // @Tags         Subscriptions
 // @Produce      json
-// @Param        page query int false "Номер страницы" default(1)
-// @Param        limit query int false "Количество на странице" default(10)
-// @Param        user_id query string false "Фильтр по пользователю"
-// @Param        service_name query string false "Фильтр по сервису"
-// @Success      200 {object} map[string]interface{}
-// @Failure      500 {object} map[string]string
+// @Param        user_id query string true "UUID пользователя"
+// @Success      200 {array} repository.Subscription
+// @Failure      400 {object} ErrorResponse
+// @Failure      500 {object} ErrorResponse
 // @Router       /subscriptions [get]
 func ListSubscriptions(w http.ResponseWriter, r *http.Request) {
 	userID, err := uuid.Parse(r.URL.Query().Get("user_id"))
@@ -234,16 +215,15 @@ func ListSubscriptions(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary      Сумма подписок
-// @Description  Подсчитывает суммарную стоимость подписок за период с фильтрацией
+// @Description  Подсчитывает сумму подписок за период
 // @Tags         Subscriptions
 // @Produce      json
 // @Param        start_date query string true "Дата начала (MM-YYYY)"
 // @Param        end_date query string true "Дата окончания (MM-YYYY)"
-// @Param        user_id query string false "Фильтр по пользователю"
-// @Param        service_name query string false "Фильтр по сервису"
+// @Param        user_id query string false "UUID пользователя"
+// @Param        service_name query string false "Название сервиса"
 // @Success      200 {object} SumResponse
-// @Failure      400 {object} map[string]string
-// @Failure      405 {object} map[string]string
+// @Failure      400 {object} ErrorResponse
 // @Router       /sumAllSub [get]
 func Sum(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -273,5 +253,5 @@ func Sum(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(sum)
+	json.NewEncoder(w).Encode(SumResponse{Sum: sum})
 }

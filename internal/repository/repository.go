@@ -49,7 +49,6 @@ func InitDB() error {
 	return nil
 }
 
-// @Description Модель подписки в системе
 type Subscription struct {
 	ID          int       `json:"id"`
 	ServiceName string    `json:"service_name"`
@@ -60,7 +59,6 @@ type Subscription struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-// @Description Запрос на создание новой подписки
 type CreateSubscriptionRequest struct {
 	ServiceName string    `json:"service_name"`
 	Price       int       `json:"price"`
@@ -69,7 +67,6 @@ type CreateSubscriptionRequest struct {
 	EndDate     string    `json:"end_date,omitempty"`
 }
 
-// @Description Запрос на обновление существующей подписки
 type UpdateRequest struct {
 	ServiceName string `json:"service_name,omitempty"`
 	Price       int    `json:"price,omitempty"`
@@ -77,16 +74,6 @@ type UpdateRequest struct {
 	EndDate     string `json:"end_date,omitempty"`
 }
 
-// CreateSubscription создает новую подписку
-// @Summary Создание подписки
-// @Description Создает новую подписку в базе данных
-// @Tags Subscriptions
-// @Accept json
-// @Produce json
-// @Param request body CreateSubscriptionRequest true "Данные подписки"
-// @Success 201 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Router /subscriptions [post]
 func CreateSubscription(req CreateSubscriptionRequest) error {
 	startDate, err := time.Parse("01-2006", req.StartDate)
 	if err != nil {
@@ -110,18 +97,6 @@ func CreateSubscription(req CreateSubscriptionRequest) error {
 	return nil
 }
 
-// UpdateSubscription обновляет подписку
-// @Summary Обновление подписки
-// @Description Обновляет существующую подписку по ID
-// @Tags Subscriptions
-// @Accept json
-// @Produce json
-// @Param id path int true "ID подписки"
-// @Param request body UpdateRequest true "Данные для обновления"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Router /subscriptions/{id} [put]
 func UpdateSubscription(id int, req UpdateRequest) error {
 	query := "UPDATE sub SET "
 	args := []interface{}{}
@@ -170,15 +145,6 @@ func UpdateSubscription(id int, req UpdateRequest) error {
 	return nil
 }
 
-// DeleteSubscription удаляет подписку
-// @Summary Удаление подписки
-// @Description Удаляет подписку по ID
-// @Tags Subscriptions
-// @Param id path int true "ID подписки"
-// @Success 204
-// @Failure 404 {object} map[string]string
-// @Router /subscriptions/{id} [delete]
-
 func DeleteSubscription(id int) error {
 	_, err := DB.Exec("DELETE FROM sub WHERE id = $1", id)
 	if err != nil {
@@ -187,15 +153,6 @@ func DeleteSubscription(id int) error {
 	return nil
 }
 
-// GetSub получает подписку по ID
-// @Summary Получение подписки
-// @Description Возвращает подписку по её ID
-// @Tags Subscriptions
-// @Produce json
-// @Param id path int true "ID подписки"
-// @Success 200 {object} Subscription
-// @Failure 404 {object} map[string]string
-// @Router /subscriptions/{id} [get]
 func GetSub(id int) (Subscription, error) {
 	var sub Subscription
 	var endDate sql.NullTime
@@ -217,19 +174,6 @@ func GetSub(id int) (Subscription, error) {
 
 	return sub, nil
 }
-
-// GetSum подсчитывает сумму подписок за период
-// @Summary Сумма подписок за период
-// @Description Подсчитывает суммарную стоимость подписок за указанный период с фильтрацией
-// @Tags Subscriptions
-// @Produce json
-// @Param user_id query string false "ID пользователя"
-// @Param service_name query string false "Название сервиса"
-// @Param start_date query string true "Дата начала (MM-YYYY)"
-// @Param end_date query string true "Дата окончания (MM-YYYY)"
-// @Success 200 {object} map[string]int
-// @Failure 400 {object} map[string]string
-// @Router /sumAllSub [get]
 
 func GetSum(userID, serviceName, startDateStr, endDateStr string) (int, error) {
 	startDate, err := time.Parse("01-2006", startDateStr)
@@ -268,16 +212,6 @@ func GetSum(userID, serviceName, startDateStr, endDateStr string) (int, error) {
 	return sum, nil
 }
 
-// ListSubscriptions возвращает список подписок пользователя
-// @Summary Список подписок пользователя
-// @Description Возвращает все подписки пользователя по его user_id
-// @Tags Subscriptions
-// @Produce json
-// @Param user_id query string true "ID пользователя (UUID)"
-// @Success 200 {array} Subscription
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /subscriptions [get]
 func ListSubscriptions(userId uuid.UUID) ([]Subscription, error) {
 	rows, err := DB.Query(`SELECT id, service_name, price, user_id, start_date, end_date, created_at FROM sub WHERE user_id = $1 ORDER BY created_at DESC`, userId)
 	if err != nil {
